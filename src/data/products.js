@@ -60,7 +60,7 @@ export const products = [
     id: 8,
     name: "Cargo Pants",
     price: 89.99,
-    image: "https://images.unsplash.com/photo-1506629905607-1b1b1b1b1b1b?w=400&h=400&fit=crop&crop=center",
+    image: "https://images.unsplash.com/photo-1609261973101-f8cd13f23206?q=80&w=627&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?w=400&h=400&fit=crop&crop=center",
     category: "Bottoms",
     description: "Durable cargo pants with multiple pockets"
   }
