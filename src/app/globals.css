@@ -223,3 +223,252 @@ a {
     transition: all 0.08s ease-out;
   }
 }
+
+/* Admin Panel Styles */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--background);
+}
+
+.admin-sidebar {
+  width: 280px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-right: 1px solid var(--glass-border);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+}
+
+.admin-sidebar.open {
+  transform: translateX(0);
+}
+
+@media (max-width: 991.98px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+  }
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-link {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+  color: inherit;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: var(--transition-smooth);
+}
+
+.sidebar-toggle:hover {
+  background: var(--glass-bg);
+}
+
+.sidebar-nav {
+  padding: 1rem 0;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.nav-item {
+  margin: 0.25rem 0;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: inherit;
+  text-decoration: none;
+  transition: var(--transition-smooth);
+  border-radius: 0;
+}
+
+.nav-link:hover {
+  background: var(--glass-bg);
+  color: var(--bs-primary);
+}
+
+.nav-link.active {
+  background: var(--bs-primary);
+  color: white;
+}
+
+.nav-icon {
+  margin-right: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.nav-text {
+  font-weight: 500;
+}
+
+.admin-main {
+  flex: 1;
+  margin-left: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 991.98px) {
+  .admin-main {
+    margin-left: 0;
+  }
+}
+
+.admin-header {
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-bottom: 1px solid var(--glass-border);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  margin-left: 1rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.admin-content {
+  flex: 1;
+  padding: 2rem;
+  background: var(--background);
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* React Admin Customizations */
+.ra-input {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 0.5rem;
+  color: inherit;
+}
+
+.ra-input:focus {
+  background: var(--glass-bg);
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.ra-datagrid {
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.ra-datagrid-header {
+  background: var(--glass-bg);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.ra-datagrid-row {
+  border-bottom: 1px solid var(--glass-border);
+  transition: var(--transition-smooth);
+}
+
+.ra-datagrid-row:hover {
+  background: var(--glass-bg);
+}
+
+.ra-datagrid-row:last-child {
+  border-bottom: none;
+}
+
+.ra-form {
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 1rem;
+  padding: 2rem;
+}
+
+.ra-toolbar {
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ra-button {
+  background: var(--bs-primary);
+  border: 1px solid var(--bs-primary);
+  border-radius: 0.5rem;
+  color: white;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: var(--transition-smooth);
+}
+
+.ra-button:hover {
+  background: var(--bs-primary);
+  border-color: var(--bs-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.3);
+}
+
+.ra-button-raised {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ra-button-raised:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}

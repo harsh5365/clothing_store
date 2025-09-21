@@ -2,9 +2,10 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../context/ThemeContext';
+import { useEffect } from 'react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,6 +13,18 @@ export default function Login() {
   const [error, setError] = useState('');
   const router = useRouter();
   const { theme } = useTheme();
+  const { data: session, status } = useSession();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (status === 'authenticated') {
+      if (session.user.role === 'ADMIN') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/');
+      }
+    }
+  }, [session, status, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +39,8 @@ export default function Login() {
     if (result.error) {
       setError(result.error);
     } else {
-      router.push('/');
+      // The middleware will handle the redirection based on user role
+      window.location.href = '/';
     }
   };
 
