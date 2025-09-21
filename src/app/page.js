@@ -20,7 +20,7 @@ export default function Home() {
             <div className="row">
               <div className="col-12 text-center">
                 <div className="glass p-4 rounded-4">
-                  <h5 className="fw-bold mb-3">StyleStore</h5>
+                  <h5 className="fw-bold mb-3">FashionFox</h5>
                   <p className="text-muted mb-3">
                     Your destination for premium clothing and accessories
                   </p>
@@ -43,7 +43,7 @@ export default function Home() {
                   </div>
                   <hr className="my-4 opacity-25" />
                   <p className="text-muted small mb-0">
-                    © 2024 StyleStore. All rights reserved.
+                    © 2024 FashionFox. All rights reserved.
                   </p>
                 </div>
               </div>

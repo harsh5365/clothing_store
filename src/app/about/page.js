@@ -14,7 +14,7 @@ export default function About() {
             <div className="col-12 text-center">
               <div className="hero-section">
                 <h1 className="display-4 fw-bold mb-4">
-                  About <span className="text-primary">StyleStore</span>
+                  About <span className="text-primary">FashionFox</span>
                 </h1>
                 <p className="lead opacity-75">
                   Your premier destination for curated fashion and style
@@ -29,7 +29,7 @@ export default function About() {
               <div className="glass p-5 rounded-4">
                 <h2 className="h3 fw-bold mb-4">Our Story</h2>
                 <p className="lead mb-4">
-                  Founded with a passion for style and quality, StyleStore has been curating 
+                  Founded with a passion for style and quality, FashionFox has been curating 
                   exceptional clothing and accessories for fashion-forward individuals since 2020.
                 </p>
                 <p className="mb-4">

@@ -208,7 +208,7 @@ export default function Contact() {
                     </div>
                     <div>
                       <h6 className="fw-bold mb-1">Email</h6>
-                      <p className="text-muted mb-0 small">hello@stylestore.com</p>
+                      <p className="text-muted mb-0 small">hello@FashionFox.com</p>
                     </div>
                   </div>
                 </div>

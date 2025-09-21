@@ -1,6 +1,6 @@
 # Email Setup Guide for Contact Form
 
-This guide will help you set up email functionality for the contact form in your StyleStore application.
+This guide will help you set up email functionality for the contact form in your FashionFox application.
 
 ## Option 1: Using Nodemailer with Gmail (Recommended for Development)
 
@@ -87,7 +87,7 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 await resend.emails.send({
-  from: 'StyleStore <noreply@stylestore.com>',
+  from: 'FashionFox <noreply@FashionFox.com>',
   to: [process.env.BUSINESS_EMAIL],
   subject: `Contact Form: ${subject}`,
   html: `

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "StyleStore - Premium Clothing & Accessories",
+  title: "FashionFox - Premium Clothing & Accessories",
   description: "Discover your perfect style with our curated collection of premium clothing and accessories. From casual wear to formal attire.",
 };
 

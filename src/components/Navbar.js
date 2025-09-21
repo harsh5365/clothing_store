@@ -13,7 +13,7 @@ const Navbar = () => {
       <div className="container">
         {/* Brand */}
         <Link className="navbar-brand fw-bold fs-3" href="/">
-          <span className="text-primary">Style</span>Store
+          <span className="text-primary">Fashion</span>Fox
         </Link>
 
         {/* Mobile Toggle Button */}
