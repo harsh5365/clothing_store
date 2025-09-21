@@ -1,13 +1,9 @@
-import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
 import ProductGrid from '../components/ProductGrid';
 
 export default function Home() {
   return (
     <div className="min-vh-100">
-      {/* Navigation */}
-      <Navbar />
-      
       {/* Main Content */}
       <main className="pt-5">
         {/* Hero Section */}
