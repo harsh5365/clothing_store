@@ -36,9 +36,8 @@ The GitHub Actions workflow (`.github/workflows/deploy.yml`) does the following:
 1. **Checkout code** from your repository
 2. **Setup Node.js** environment
 3. **Install dependencies** using `npm ci`
-4. **Build the project** using `npm run build`
-5. **Export static files** using `npm run export`
-6. **Deploy to GitHub Pages** using the `peaceiris/actions-gh-pages` action
+4. **Build and export the project** using `npm run build` (static export is integrated)
+5. **Deploy to GitHub Pages** using the `peaceiris/actions-gh-pages` action
 
 ## Configuration Files
 
@@ -71,7 +70,6 @@ If you need to deploy manually:
 
 ```bash
 npm run build
-npm run export
 # Then upload the 'out' folder contents to your hosting provider
 ```
 
