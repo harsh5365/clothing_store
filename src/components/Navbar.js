@@ -12,9 +12,9 @@ const Navbar = () => {
     <nav className="navbar navbar-expand-lg glass-navbar fixed-top">
       <div className="container">
         {/* Brand */}
-        <a className="navbar-brand fw-bold fs-3" href="#">
+        <Link className="navbar-brand fw-bold fs-3" href="/">
           <span className="text-primary">Style</span>Store
-        </a>
+        </Link>
 
         {/* Mobile Toggle Button */}
         <button
@@ -43,14 +43,14 @@ const Navbar = () => {
               </a>
             </li>
             <li className="nav-item">
-              <a className="nav-link fw-medium" href="#about">
+              <Link className="nav-link fw-medium" href="/about">
                 About
-              </a>
+              </Link>
             </li>
             <li className="nav-item">
-              <a className="nav-link fw-medium" href="#contact">
+              <Link className="nav-link fw-medium" href="/contact">
                 Contact
-              </a>
+              </Link>
             </li>
           </ul>
 
@@ -109,7 +109,14 @@ const Navbar = () => {
                 <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                   <li><Link className="dropdown-item" href="/profile">Profile</Link></li>
                   <li><hr className="dropdown-divider" /></li>
-                  <li><button className="dropdown-item" onClick={() => signOut()}>Logout</button></li>
+                  <li>
+                    <button
+                      className="dropdown-item"
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                    >
+                      Logout
+                    </button>
+                  </li>
                 </ul>
               </div>
             )}
