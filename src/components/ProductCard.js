@@ -1,14 +1,23 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useCart } from '../context/CartContext';
 import WishlistButton from './WishlistButton';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { calculateAverageRating, getReviewCount } from '../lib/reviewUtils';
 
 const ProductCard = ({ product }) => {
   const { id, name, price, image, category, description } = product;
   const { addItem } = useCart();
   const [isAdding, setIsAdding] = useState(false);
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
+
+  useEffect(() => {
+    setAverageRating(calculateAverageRating(id));
+    setReviewCount(getReviewCount(id));
+  }, [id]);
 
   const handleAddToCart = () => {
     setIsAdding(true);
@@ -21,7 +30,7 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div>
+    <Link href={`/product/${id}`} className="text-decoration-none">
       <div className="product-card h-100">
         {/* Product Image */}
         <div className="position-relative overflow-hidden">
@@ -50,6 +59,15 @@ const ProductCard = ({ product }) => {
           <h5 className="fw-bold mb-2 text-truncate" title={name}>
             {name}
           </h5>
+          
+          {/* Rating */}
+          {reviewCount > 0 && (
+            <div className="mb-2">
+              <span className="text-warning me-1">★</span>
+              <span className="small">{averageRating.toFixed(1)} ({reviewCount})</span>
+            </div>
+          )}
+          
           <p className="text-muted small mb-3 line-clamp-2" title={description}>
             {description}
           </p>
@@ -63,7 +81,10 @@ const ProductCard = ({ product }) => {
             </div>
             <button 
               className={`btn btn-sm rounded-pill px-3 ${isAdding ? 'btn-success' : 'btn-outline-primary'}`}
-              onClick={handleAddToCart}
+              onClick={(e) => {
+                e.preventDefault();
+                handleAddToCart();
+              }}
               disabled={isAdding}
               aria-label={`Add ${name} to cart`}
             >
@@ -98,7 +119,7 @@ const ProductCard = ({ product }) => {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

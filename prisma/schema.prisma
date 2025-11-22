@@ -15,8 +15,13 @@ model Product {
   name        String
   description String?
   price       Float
+  image       String?
+  category    String?
+  stock       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  reviews     Review[]
+  orderItems  OrderItem[]
 }
 
 model Account {
@@ -55,6 +60,8 @@ model User {
   role          Role      @default(CUSTOMER)
   accounts      Account[]
   sessions      Session[]
+  orders        Order[]
+  reviews       Review[]
 }
 
 model VerificationToken {
@@ -65,7 +72,64 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  subtotal        Float
+  shipping        Float
+  tax             Float
+  total           Float
+  status          OrderStatus @default(PENDING)
+  shippingName    String
+  shippingAddress String
+  shippingCity    String
+  shippingState   String
+  shippingZip     String
+  shippingPhone   String
+  paymentMethod   String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  name      String
+  price     Float
+  quantity  Int
+  image     String?
+  category  String?
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  title     String
+  text      String   @db.Text
+  helpful   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum Role {
   CUSTOMER
   ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
