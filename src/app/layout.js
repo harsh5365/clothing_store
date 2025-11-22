@@ -1,6 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "../context/ThemeContext";
+import { CartProvider } from "../context/CartContext";
+import { WishlistProvider } from "../context/WishlistContext";
 import Providers from "./providers";
 import Navbar from "../components/Navbar";
 
@@ -32,8 +34,12 @@ export default function RootLayout({ children }) {
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Providers>
           <ThemeProvider>
-            <Navbar />
-            {children}
+            <CartProvider>
+              <WishlistProvider>
+                <Navbar />
+                {children}
+              </WishlistProvider>
+            </CartProvider>
           </ThemeProvider>
         </Providers>
       </body>

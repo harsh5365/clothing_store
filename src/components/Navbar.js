@@ -3,6 +3,9 @@
 import { useTheme } from '../context/ThemeContext';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import Link from 'next/link';
+import CartBadge from './CartBadge';
+import CartDrawer from './CartDrawer';
+import WishlistBadge from './WishlistBadge';
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
@@ -54,8 +57,14 @@ const Navbar = () => {
             </li>
           </ul>
 
-          {/* Theme Toggle and Auth Buttons */}
+          {/* Theme Toggle, Wishlist, Cart, and Auth Buttons */}
           <div className="d-flex align-items-center">
+            {/* Wishlist Badge */}
+            <WishlistBadge />
+            
+            {/* Cart Badge */}
+            <CartBadge />
+            
             <button
               className="btn theme-toggle border-0 d-flex align-items-center gap-2 me-3"
               onClick={toggleTheme}
@@ -137,6 +146,9 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      
+      {/* Cart Drawer */}
+      <CartDrawer />
     </nav>
   );
 };
