@@ -61,7 +61,7 @@ export default function Contact() {
                   Get In <span className="text-primary">Touch</span>
                 </h1>
                 <p className="lead opacity-75">
-                  We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+                  We&lsquo;d love to hear from you. Send us a message and we&lsquo;ll respond as soon as possible.
                 </p>
               </div>
             </div>
@@ -75,7 +75,7 @@ export default function Contact() {
                 
                 {submitStatus === 'success' && (
                   <div className="alert alert-success alert-dismissible fade show" role="alert">
-                    <strong>Success!</strong> Your message has been sent successfully. We'll get back to you soon!
+                    <strong>Success!</strong> Your message has been sent successfully. We&lsquo;ll get back to you soon!
                     <button type="button" className="btn-close" data-bs-dismiss="alert"></button>
                   </div>
                 )}

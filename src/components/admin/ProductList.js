@@ -24,18 +24,26 @@ import {
 import { categories } from '../../data/admin/categories';
 
 const ProductFilters = [
-  <SearchInput source="name" alwaysOn />,
-  <ReferenceInput source="categoryId" reference="categories" label="Category">
+  <SearchInput key="search" source="name" alwaysOn />,
+  <ReferenceInput key="category" source="categoryId" reference="categories" label="Category">
     <SelectInput optionText="name" />
   </ReferenceInput>,
-  <SelectInput source="isActive" choices={[
-    { id: true, name: 'Active' },
-    { id: false, name: 'Inactive' }
-  ]} />,
-  <SelectInput source="isFeatured" choices={[
-    { id: true, name: 'Featured' },
-    { id: false, name: 'Not Featured' }
-  ]} />
+  <SelectInput
+    key="isActive"
+    source="isActive"
+    choices={[
+      { id: true, name: 'Active' },
+      { id: false, name: 'Inactive' }
+    ]}
+  />,
+  <SelectInput
+    key="isFeatured"
+    source="isFeatured"
+    choices={[
+      { id: true, name: 'Featured' },
+      { id: false, name: 'Not Featured' }
+    ]}
+  />
 ];
 
 const ListActions = () => (

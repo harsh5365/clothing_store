@@ -33,7 +33,7 @@ export default function About() {
                   exceptional clothing and accessories for fashion-forward individuals since 2020.
                 </p>
                 <p className="mb-4">
-                  We believe that fashion is more than just clothing—it's a form of self-expression, 
+                  We believe that fashion is more than just clothing—it&lsquo;s a form of self-expression, 
                   confidence, and personal storytelling. Our carefully selected collection features 
                   pieces that blend timeless elegance with contemporary trends, ensuring you always 
                   look and feel your best.
@@ -77,7 +77,7 @@ export default function About() {
                 </div>
                 <h4 className="h5 fw-bold mb-3">Sustainability</h4>
                 <p className="text-muted">
-                  We're committed to sustainable fashion practices, working with brands that 
+                  We&lsquo;re committed to sustainable fashion practices, working with brands that 
                   prioritize environmental responsibility and ethical production.
                 </p>
               </div>

@@ -15,7 +15,8 @@ import {
   minValue,
   SaveButton,
   Toolbar,
-  useGetList
+  useGetList,
+  ImageField
 } from 'react-admin';
 
 const ProductCreateToolbar = () => (

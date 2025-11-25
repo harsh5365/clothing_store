@@ -30,7 +30,7 @@ export default function CartPage() {
               </svg>
               <h3 className="mb-3">Your cart is empty</h3>
               <p className="text-muted mb-4">
-                Looks like you haven't added any items to your cart yet.
+                Looks like you haven&lsquo;t added any items to your cart yet.
               </p>
               <Link href="/" className="btn btn-primary btn-lg">
                 Continue Shopping

@@ -28,14 +28,14 @@ export default function ProductDetailPage() {
     if (product) {
       loadReviews();
     }
-  }, [product]);
+  }, [product, loadReviews]);
 
-  const loadReviews = () => {
+  const loadReviews = useCallback(() => {
     const productReviews = getProductReviews(productId);
     setReviews(productReviews);
     setAverageRating(calculateAverageRating(productId));
     setReviewCount(getReviewCount(productId));
-  };
+  }, [productId]);
 
   const handleAddToCart = () => {
     setIsAdding(true);

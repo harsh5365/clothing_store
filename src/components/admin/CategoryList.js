@@ -20,13 +20,13 @@ import {
 } from 'react-admin';
 
 const CategoryFilters = [
-  <SearchInput source="name" alwaysOn />,
-  <SelectInput source="parentId" choices={[
+  <SearchInput key="search" source="name" alwaysOn />,
+  <SelectInput key="categories" source="parentId" choices={[
     { id: null, name: 'Main Categories' },
     { id: 1, name: 'Men' },
     { id: 2, name: 'Women' }
   ]} />,
-  <SelectInput source="isActive" choices={[
+  <SelectInput key="status" source="isActive" choices={[
     { id: true, name: 'Active' },
     { id: false, name: 'Inactive' }
   ]} />

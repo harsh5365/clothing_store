@@ -90,7 +90,7 @@ export default function ProductsPage() {
               </svg>
               <h3 className="mb-3">No products found</h3>
               <p className="text-muted mb-4">
-                Try adjusting your filters or search query to find what you're looking for.
+                Try adjusting your filters or search query to find what you&lsquo;re looking for.
               </p>
               <button
                 className="btn btn-primary"

@@ -11,7 +11,8 @@ import {
   required,
   SaveButton,
   Toolbar,
-  useGetList
+  useGetList,
+  ImageField
 } from 'react-admin';
 
 const CategoryCreateToolbar = () => (
