@@ -14,6 +14,7 @@ export default function AdminOrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [refunding, setRefunding] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated' || (status === 'authenticated' && session?.user?.role !== 'ADMIN')) {
@@ -189,6 +190,46 @@ export default function AdminOrderDetailPage() {
                   <option value="CANCELLED">CANCELLED</option>
                 </select>
               </div>
+              {order.status === 'CANCELLED' && order.razorpayPaymentId && (
+                <div className="mb-3">
+                  <button
+                    type="button"
+                    className="btn btn-warning btn-sm"
+                    disabled={refunding}
+                    onClick={() => {
+                      if (!confirm(`Refund order #${order.orderNumber} ($${order.total?.toFixed(2) || '0.00'}) via Razorpay?`)) return;
+                      setRefunding(true);
+                      fetch('/api/admin/orders/refund', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderId: order.id }),
+                      })
+                        .then((res) => res.json().then((data) => {
+                          if (res.ok) return data;
+                          if (data.manualRefundUrl) {
+                            alert(data.error + '\n\nOpening Razorpay Dashboard to refund manually.');
+                            window.open(data.manualRefundUrl);
+                            return Promise.reject(new Error('MANUAL_REFUND'));
+                          }
+                          return Promise.reject(new Error(data.error));
+                        }))
+                        .then(() => alert('Refund initiated successfully.'))
+                        .catch((err) => { if (err?.message !== 'MANUAL_REFUND') alert(err?.message || 'Refund failed'); })
+                        .finally(() => setRefunding(false));
+                    }}
+                  >
+                    {refunding ? 'Processing…' : 'Refund money'}
+                  </button>
+                  <a
+                    href={`https://dashboard.razorpay.com/app/payments/${order.razorpayPaymentId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-link btn-sm ms-2"
+                  >
+                    Open in Razorpay
+                  </a>
+                </div>
+              )}
               <hr />
               <div className="d-flex justify-content-between mb-2">
                 <span>Subtotal:</span>

@@ -10,6 +10,7 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (!params.id) {
@@ -70,6 +71,21 @@ export default function OrderDetailPage() {
   }
 
   const hasShipping = order.shippingName || order.shippingAddress;
+  const canCancel = ['PENDING', 'PROCESSING'].includes(order.status);
+
+  const handleCancelOrder = () => {
+    if (!confirm('Are you sure you want to cancel this order? This cannot be undone.')) return;
+    setCancelling(true);
+    fetch('/api/orders', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: order.id, status: 'CANCELLED' }),
+    })
+      .then((res) => (res.ok ? res.json() : res.json().then((e) => Promise.reject(new Error(e.error || 'Failed to cancel')))))
+      .then((updated) => setOrder(updated))
+      .catch((err) => alert(err?.message || 'Failed to cancel order'))
+      .finally(() => setCancelling(false));
+  };
 
   return (
     <div className="container py-5" style={{ marginTop: '80px' }}>
@@ -137,8 +153,20 @@ export default function OrderDetailPage() {
               </div>
               <div className="d-flex justify-content-between mb-2">
                 <span>Status:</span>
-                <span className="badge bg-primary">{order.status}</span>
+                <span className={`badge ${order.status === 'CANCELLED' ? 'bg-danger' : order.status === 'DELIVERED' ? 'bg-success' : 'bg-primary'}`}>{order.status}</span>
               </div>
+              {canCancel && (
+                <div className="mb-2">
+                  <button
+                    type="button"
+                    className="btn btn-outline-danger btn-sm"
+                    onClick={handleCancelOrder}
+                    disabled={cancelling}
+                  >
+                    {cancelling ? 'Cancelling…' : 'Cancel order'}
+                  </button>
+                </div>
+              )}
               <hr />
               <div className="d-flex justify-content-between mb-2">
                 <span>Subtotal:</span>

@@ -429,9 +429,47 @@ export default function AdminDashboard() {
                         <td>{o.shippingName ?? '—'}</td>
                         <td>{formatDate(o.createdAt)}</td>
                         <td>
-                          <Link href={`/admin/orders/${o.id}`} className="btn btn-sm btn-outline-primary">
+                          <Link href={`/admin/orders/${o.id}`} className="btn btn-sm btn-outline-primary me-1">
                             View
                           </Link>
+                          {o.status === 'CANCELLED' && o.razorpayPaymentId && (
+                            <>
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-warning me-1"
+                                onClick={() => {
+                                  if (!confirm(`Refund order #${o.orderNumber} (${formatCurrency(o.total)}) via Razorpay?`)) return;
+                                  fetch('/api/admin/orders/refund', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ orderId: o.id }),
+                                  })
+                                    .then((res) => res.json().then((data) => {
+                                      if (res.ok) return data;
+                                      if (data.manualRefundUrl) {
+                                        alert(data.error + '\n\nOpening Razorpay Dashboard to refund manually.');
+                                        window.open(data.manualRefundUrl);
+                                        return Promise.reject(new Error('MANUAL_REFUND'));
+                                      }
+                                      return Promise.reject(new Error(data.error));
+                                    }))
+                                    .then(() => alert('Refund initiated successfully.'))
+                                    .catch((err) => { if (err?.message !== 'MANUAL_REFUND') alert(err?.message || 'Refund failed'); });
+                                }}
+                              >
+                                Refund
+                              </button>
+                              <a
+                                href={`https://dashboard.razorpay.com/app/payments/${o.razorpayPaymentId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-sm btn-link text-muted small p-0"
+                                title="Open in Razorpay"
+                              >
+                                Razorpay
+                              </a>
+                            </>
+                          )}
                         </td>
                       </tr>
                     ))}
