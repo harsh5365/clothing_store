@@ -472,3 +472,61 @@ a {
 .ra-button-raised:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
+
+/* Admin dashboard table theme */
+.admin-table-wrapper {
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--glass-shadow);
+}
+
+.admin-table {
+  margin-bottom: 0;
+  color: inherit;
+}
+
+.admin-table thead {
+  background: var(--glass-bg);
+  border-bottom: 2px solid var(--glass-border);
+}
+
+.admin-table thead th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 1rem 1.25rem;
+  border: none;
+  color: inherit;
+  opacity: 0.9;
+}
+
+.admin-table tbody tr {
+  border-bottom: 1px solid var(--glass-border);
+  transition: background 0.15s ease;
+}
+
+.admin-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.admin-table tbody tr:hover {
+  background: var(--glass-bg);
+}
+
+.admin-table tbody td {
+  padding: 1rem 1.25rem;
+  vertical-align: middle;
+}
+
+[data-bs-theme="dark"] .admin-table thead {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .admin-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.06);
+}

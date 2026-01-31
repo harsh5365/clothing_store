@@ -276,9 +276,9 @@ export default function AdminDashboard() {
             ) : products.length === 0 ? (
               <div className="text-center py-5 text-muted">No products yet. Click &quot;Add product&quot; to create one.</div>
             ) : (
-              <div className="table-responsive">
-                <table className="table table-hover table-striped">
-                  <thead className="table-light">
+              <div className="admin-table-wrapper table-responsive">
+                <table className="table admin-table">
+                  <thead>
                     <tr>
                       <th>Image</th>
                       <th>Name</th>
@@ -326,9 +326,9 @@ export default function AdminDashboard() {
             ) : orders.length === 0 ? (
               <div className="text-center py-5 text-muted">No orders yet.</div>
             ) : (
-              <div className="table-responsive">
-                <table className="table table-hover table-striped">
-                  <thead className="table-light">
+              <div className="admin-table-wrapper table-responsive">
+                <table className="table admin-table">
+                  <thead>
                     <tr>
                       <th>Order #</th>
                       <th>Customer</th>
