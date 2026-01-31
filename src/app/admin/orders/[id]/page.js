@@ -1,24 +1,32 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 
-export default function OrderDetailPage() {
+export default function AdminOrderDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { data: session, status } = useSession();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [statusUpdating, setStatusUpdating] = useState(false);
 
   useEffect(() => {
-    if (!params.id) {
-      setLoading(false);
+    if (status === 'unauthenticated' || (status === 'authenticated' && session?.user?.role !== 'ADMIN')) {
+      router.push('/login');
+      return;
+    }
+    if (status !== 'authenticated' || !params.id) {
+      if (status === 'authenticated' && !params.id) setLoading(false);
       return;
     }
     setLoading(true);
     setError(null);
-    fetch(`/api/orders?id=${encodeURIComponent(params.id)}`)
+    fetch(`/api/admin/orders?id=${encodeURIComponent(params.id)}`)
       .then((res) => {
         if (!res.ok) {
           if (res.status === 404) return null;
@@ -31,18 +39,18 @@ export default function OrderDetailPage() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [params.id]);
+  }, [params.id, session?.user?.role, status, router]);
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '—';
     return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
-  if (loading) {
+  if (status === 'loading' || loading) {
     return (
       <div className="container py-5" style={{ marginTop: '80px' }}>
         <div className="text-center py-5">
@@ -55,14 +63,18 @@ export default function OrderDetailPage() {
     );
   }
 
+  if (session?.user?.role !== 'ADMIN') {
+    return null;
+  }
+
   if (error || !order) {
     return (
       <div className="container py-5" style={{ marginTop: '80px' }}>
         <div className="text-center">
           <h2>Order Not Found</h2>
           {error && <p className="text-muted">{error}</p>}
-          <Link href="/orders" className="btn btn-primary mt-3">
-            View All Orders
+          <Link href="/admin/dashboard" className="btn btn-primary mt-3">
+            Back to Dashboard
           </Link>
         </div>
       </div>
@@ -75,8 +87,8 @@ export default function OrderDetailPage() {
     <div className="container py-5" style={{ marginTop: '80px' }}>
       <nav aria-label="breadcrumb" className="mb-4">
         <ol className="breadcrumb">
-          <li className="breadcrumb-item"><Link href="/">Home</Link></li>
-          <li className="breadcrumb-item"><Link href="/orders">Orders</Link></li>
+          <li className="breadcrumb-item"><Link href="/admin/dashboard">Dashboard</Link></li>
+          <li className="breadcrumb-item"><Link href="/admin/dashboard">Orders</Link></li>
           <li className="breadcrumb-item active">Order #{order.orderNumber}</li>
         </ol>
       </nav>
@@ -132,12 +144,50 @@ export default function OrderDetailPage() {
                 <strong>{order.orderNumber}</strong>
               </div>
               <div className="d-flex justify-content-between mb-2">
+                <span>Customer:</span>
+                <span>{order.user?.name || order.user?.email || order.userId || '—'}</span>
+              </div>
+              <div className="d-flex justify-content-between mb-2">
                 <span>Order Date:</span>
                 <span>{formatDate(order.createdAt)}</span>
               </div>
-              <div className="d-flex justify-content-between mb-2">
+              <div className="d-flex justify-content-between align-items-center mb-2">
                 <span>Status:</span>
-                <span className="badge bg-primary">{order.status}</span>
+                <select
+                  className="form-select form-select-sm"
+                  style={{ width: 'auto', minWidth: '120px' }}
+                  value={order.status ?? ''}
+                  disabled={statusUpdating}
+                  onChange={(e) => {
+                    const newStatus = e.target.value;
+                    if (!newStatus) return;
+                    if (!confirm(`Change order status to ${newStatus}?`)) {
+                      e.target.value = order.status ?? '';
+                      return;
+                    }
+                    setStatusUpdating(true);
+                    fetch('/api/admin/orders', {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ id: order.id, status: newStatus }),
+                    })
+                      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Update failed'))))
+                      .then((updated) => {
+                        setOrder(updated);
+                      })
+                      .catch((err) => {
+                        alert(err?.message || 'Failed to update status');
+                        e.target.value = order.status ?? '';
+                      })
+                      .finally(() => setStatusUpdating(false));
+                  }}
+                >
+                  <option value="PENDING">PENDING</option>
+                  <option value="PROCESSING">PROCESSING</option>
+                  <option value="SHIPPED">SHIPPED</option>
+                  <option value="DELIVERED">DELIVERED</option>
+                  <option value="CANCELLED">CANCELLED</option>
+                </select>
               </div>
               <hr />
               <div className="d-flex justify-content-between mb-2">

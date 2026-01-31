@@ -384,6 +384,7 @@ export default function AdminDashboard() {
                       <th>Status</th>
                       <th>Ship to</th>
                       <th>Date</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -392,9 +393,46 @@ export default function AdminDashboard() {
                         <td>{o.orderNumber ?? '—'}</td>
                         <td>{o.user?.name || o.user?.email || o.userId || '—'}</td>
                         <td>{formatCurrency(o.total)}</td>
-                        <td><span className="badge bg-secondary">{o.status ?? '—'}</span></td>
+                        <td>
+                          <select
+                            className="form-select form-select-sm"
+                            value={o.status ?? ''}
+                            onChange={(e) => {
+                              const newStatus = e.target.value;
+                              if (!newStatus) return;
+                              if (!confirm(`Change order #${o.orderNumber} status to ${newStatus}?`)) {
+                                e.target.value = o.status ?? '';
+                                return;
+                              }
+                              fetch('/api/admin/orders', {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id: o.id, status: newStatus }),
+                              })
+                                .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Update failed'))))
+                                .then((updated) => {
+                                  setOrders((prev) => prev.map((ord) => (ord.id === updated.id ? updated : ord)));
+                                })
+                                .catch((err) => {
+                                  alert(err?.message || 'Failed to update status');
+                                  e.target.value = o.status ?? '';
+                                });
+                            }}
+                          >
+                            <option value="PENDING">PENDING</option>
+                            <option value="PROCESSING">PROCESSING</option>
+                            <option value="SHIPPED">SHIPPED</option>
+                            <option value="DELIVERED">DELIVERED</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                          </select>
+                        </td>
                         <td>{o.shippingName ?? '—'}</td>
                         <td>{formatDate(o.createdAt)}</td>
+                        <td>
+                          <Link href={`/admin/orders/${o.id}`} className="btn btn-sm btn-outline-primary">
+                            View
+                          </Link>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

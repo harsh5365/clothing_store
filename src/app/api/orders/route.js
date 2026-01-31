@@ -12,9 +12,7 @@ export async function POST(request) {
     }
 
     const data = await request.json();
-    console.log(session);
-    console.log(data.items);
-    
+
     // Generate order number
     const orderNumber = `ORD-${Date.now().toString().slice(-8)}`;
     
