@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { products } from '../../../data/products';
 import { useCart } from '../../../context/CartContext';
 import { useWishlist } from '../../../context/WishlistContext';
 import WishlistButton from '../../../components/WishlistButton';
@@ -14,9 +13,25 @@ import { getProductReviews, calculateAverageRating, getReviewCount } from '../..
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const productId = parseInt(params.id);
-  const product = products.find(p => p.id === productId);
-  
+  const productId = params.id;
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch(`/api/products?id=${encodeURIComponent(productId)}`)
+      .then((res) => {
+        if (!res.ok) {
+          if (res.status === 404) return null;
+          throw new Error('Failed to load product');
+        }
+        return res.json();
+      })
+      .then(setProduct)
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, [productId]);
+
   const { addItem } = useCart();
   const { isInWishlist } = useWishlist();
   const [isAdding, setIsAdding] = useState(false);
@@ -24,20 +39,22 @@ export default function ProductDetailPage() {
   const [averageRating, setAverageRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
 
+  const loadReviews = useCallback(() => {
+    const id = product?.id ?? parseInt(productId, 10);
+    if (!id) return;
+    setReviews(getProductReviews(id));
+    setAverageRating(calculateAverageRating(id));
+    setReviewCount(getReviewCount(id));
+  }, [productId, product?.id]);
+
   useEffect(() => {
     if (product) {
       loadReviews();
     }
   }, [product, loadReviews]);
 
-  const loadReviews = useCallback(() => {
-    const productReviews = getProductReviews(productId);
-    setReviews(productReviews);
-    setAverageRating(calculateAverageRating(productId));
-    setReviewCount(getReviewCount(productId));
-  }, [productId]);
-
   const handleAddToCart = () => {
+    if (!product) return;
     setIsAdding(true);
     addItem(product);
     setTimeout(() => setIsAdding(false), 600);
@@ -46,6 +63,29 @@ export default function ProductDetailPage() {
   const handleReviewAdded = () => {
     loadReviews();
   };
+
+  if (loading) {
+    return (
+      <div className="container py-5" style={{ marginTop: '80px' }}>
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2 text-muted">Loading product...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container py-5" style={{ marginTop: '80px' }}>
+        <div className="text-center py-5">
+          <p className="text-danger">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -140,7 +180,7 @@ export default function ProductDetailPage() {
         
         <div className="col-lg-4">
           <ReviewForm
-            productId={productId}
+            productId={product.id}
             onReviewAdded={handleReviewAdded}
           />
         </div>

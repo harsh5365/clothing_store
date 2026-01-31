@@ -15,7 +15,7 @@ model Product {
   name        String
   description String?
   price       Float
-  image       String?
+  image       String?  @db.VarChar(500)
   category    String?
   stock       Int      @default(0)
   createdAt   DateTime @default(now())

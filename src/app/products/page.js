@@ -1,6 +1,6 @@
 'use client';
 
-import { products } from '../../data/products';
+import { useState, useEffect } from 'react';
 import { useProductSearch } from '../../hooks/useProductSearch';
 import SearchBar from '../../components/SearchBar';
 import FilterPanel from '../../components/FilterPanel';
@@ -8,6 +8,18 @@ import FilterTags from '../../components/FilterTags';
 import ProductGrid from '../../components/ProductGrid';
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Failed to load products'))))
+      .then(setProducts)
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, []);
+
   const {
     filteredProducts,
     resultCount,
@@ -19,6 +31,29 @@ export default function ProductsPage() {
     activeFilters,
     hasActiveFilters
   } = useProductSearch(products);
+
+  if (loading) {
+    return (
+      <div className="container py-5" style={{ marginTop: '80px' }}>
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2 text-muted">Loading products...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container py-5" style={{ marginTop: '80px' }}>
+        <div className="text-center py-5">
+          <p className="text-danger">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-5" style={{ marginTop: '80px' }}>

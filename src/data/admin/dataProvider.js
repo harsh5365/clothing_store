@@ -1,270 +1,181 @@
-import { products } from './products';
-import { categories } from './categories';
+function apiUrl(path) {
+  return path;
+}
 
-// Simple in-memory data provider for React Admin
+function applyFilter(data, filter) {
+  if (!filter || !Object.keys(filter).length) return data;
+  return data.filter((item) => {
+    return Object.entries(filter).every(([key, value]) => {
+      if (value == null || value === '') return true;
+      const itemVal = item[key];
+      if (itemVal == null) return false;
+      return String(itemVal).toLowerCase().includes(String(value).toLowerCase());
+    });
+  });
+}
+
+function applySort(data, sort) {
+  if (!sort?.field) return data;
+  const { field, order } = sort;
+  const dir = order === 'ASC' ? 1 : -1;
+  return [...data].sort((a, b) => {
+    const aVal = a[field];
+    const bVal = b[field];
+    if (aVal === bVal) return 0;
+    return (aVal > bVal ? 1 : -1) * dir;
+  });
+}
+
+// React Admin data provider – all data from API only
 export const dataProvider = {
-  getList: (resource, params) => {
-    console.log('getList', resource, params);
-    
-    let data = [];
-    switch (resource) {
-      case 'products':
-        data = products;
-        break;
-      case 'categories':
-        data = categories;
-        break;
-      default:
-        data = [];
+  getList: async (resource, params) => {
+    if (resource === 'products') {
+      const res = await fetch(apiUrl('/api/products'));
+      if (!res.ok) throw new Error('Failed to fetch products');
+      let data = await res.json();
+      data = applyFilter(data, params.filter);
+      data = applySort(data, params.sort);
+      const total = data.length;
+      const { page, perPage } = params.pagination;
+      const start = (page - 1) * perPage;
+      data = data.slice(start, start + perPage);
+      return { data, total };
     }
+    if (resource === 'categories') {
+      const res = await fetch(apiUrl('/api/categories'));
+      if (!res.ok) throw new Error('Failed to fetch categories');
+      const data = await res.json();
+      const total = data.length;
+      const { page, perPage } = params.pagination;
+      const start = (page - 1) * perPage;
+      const paginated = data.slice(start, start + perPage);
+      return { data: paginated, total };
+    }
+    return { data: [], total: 0 };
+  },
 
-    // Apply filtering
-    if (params.filter) {
-      Object.keys(params.filter).forEach(key => {
-        if (params.filter[key]) {
-          data = data.filter(item => 
-            item[key]?.toString().toLowerCase().includes(params.filter[key].toString().toLowerCase())
-          );
-        }
+  getOne: async (resource, params) => {
+    if (resource === 'products') {
+      const res = await fetch(apiUrl(`/api/products?id=${params.id}`));
+      if (!res.ok) throw new Error('Product not found');
+      const data = await res.json();
+      return { data };
+    }
+    if (resource === 'categories') {
+      const res = await fetch(apiUrl('/api/categories'));
+      if (!res.ok) throw new Error('Failed to fetch categories');
+      const list = await res.json();
+      const record = list.find((c) => c.id === params.id || c.name === params.id);
+      if (!record) return { data: { id: params.id, name: params.id } };
+      return { data: record };
+    }
+    throw new Error('Unknown resource');
+  },
+
+  getMany: async (resource, params) => {
+    if (resource === 'products') {
+      const res = await fetch(apiUrl('/api/products'));
+      if (!res.ok) throw new Error('Failed to fetch products');
+      let data = await res.json();
+      data = data.filter((item) => params.ids.includes(item.id));
+      return { data };
+    }
+    if (resource === 'categories') {
+      const res = await fetch(apiUrl('/api/categories'));
+      if (!res.ok) throw new Error('Failed to fetch categories');
+      const list = await res.json();
+      const data = list.filter((c) => params.ids.includes(c.id));
+      return { data };
+    }
+    return { data: [] };
+  },
+
+  getManyReference: async (resource, params) => {
+    if (resource === 'products' && params.target === 'categoryId') {
+      const res = await fetch(apiUrl('/api/products'));
+      if (!res.ok) throw new Error('Failed to fetch products');
+      let data = await res.json();
+      data = data.filter((item) => item.category === params.id);
+      data = applySort(data, params.sort);
+      const total = data.length;
+      const { page, perPage } = params.pagination;
+      const start = (page - 1) * perPage;
+      data = data.slice(start, start + perPage);
+      return { data, total };
+    }
+    return { data: [], total: 0 };
+  },
+
+  create: async (resource, params) => {
+    if (resource === 'products') {
+      const res = await fetch(apiUrl('/api/products'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params.data),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to create product');
+      }
+      const data = await res.json();
+      return { data };
     }
+    throw new Error('Create not supported for this resource');
+  },
 
-    // Apply sorting
-    if (params.sort) {
-      const { field, order } = params.sort;
-      data.sort((a, b) => {
-        const aVal = a[field];
-        const bVal = b[field];
-        if (order === 'ASC') {
-          return aVal > bVal ? 1 : -1;
-        } else {
-          return aVal < bVal ? 1 : -1;
-        }
+  update: async (resource, params) => {
+    if (resource === 'products') {
+      const res = await fetch(apiUrl(`/api/products?id=${params.id}`), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params.data),
       });
-    }
-
-    // Apply pagination
-    const { page, perPage } = params.pagination;
-    const start = (page - 1) * perPage;
-    const end = start + perPage;
-    const paginatedData = data.slice(start, end);
-
-    return Promise.resolve({
-      data: paginatedData,
-      total: data.length,
-    });
-  },
-
-  getOne: (resource, params) => {
-    console.log('getOne', resource, params);
-    
-    let data = [];
-    switch (resource) {
-      case 'products':
-        data = products;
-        break;
-      case 'categories':
-        data = categories;
-        break;
-      default:
-        data = [];
-    }
-
-    const record = data.find(item => item.id === params.id);
-    if (!record) {
-      return Promise.reject(new Error('Record not found'));
-    }
-
-    return Promise.resolve({
-      data: record,
-    });
-  },
-
-  getMany: (resource, params) => {
-    console.log('getMany', resource, params);
-    
-    let data = [];
-    switch (resource) {
-      case 'products':
-        data = products;
-        break;
-      case 'categories':
-        data = categories;
-        break;
-      default:
-        data = [];
-    }
-
-    const records = data.filter(item => params.ids.includes(item.id));
-    return Promise.resolve({
-      data: records,
-    });
-  },
-
-  getManyReference: (resource, params) => {
-    console.log('getManyReference', resource, params);
-    
-    let data = [];
-    switch (resource) {
-      case 'products':
-        data = products;
-        break;
-      case 'categories':
-        data = categories;
-        break;
-      default:
-        data = [];
-    }
-
-    const records = data.filter(item => item[params.target] === params.id);
-    return Promise.resolve({
-      data: records,
-      total: records.length,
-    });
-  },
-
-  create: (resource, params) => {
-    console.log('create', resource, params);
-    
-    let data = [];
-    switch (resource) {
-      case 'products':
-        data = products;
-        break;
-      case 'categories':
-        data = categories;
-        break;
-      default:
-        data = [];
-    }
-
-    const newRecord = {
-      id: Math.max(...data.map(item => item.id)) + 1,
-      ...params.data,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    data.push(newRecord);
-
-    return Promise.resolve({
-      data: newRecord,
-    });
-  },
-
-  update: (resource, params) => {
-    console.log('update', resource, params);
-    
-    let data = [];
-    switch (resource) {
-      case 'products':
-        data = products;
-        break;
-      case 'categories':
-        data = categories;
-        break;
-      default:
-        data = [];
-    }
-
-    const index = data.findIndex(item => item.id === params.id);
-    if (index === -1) {
-      return Promise.reject(new Error('Record not found'));
-    }
-
-    data[index] = {
-      ...data[index],
-      ...params.data,
-      updatedAt: new Date().toISOString(),
-    };
-
-    return Promise.resolve({
-      data: data[index],
-    });
-  },
-
-  updateMany: (resource, params) => {
-    console.log('updateMany', resource, params);
-    
-    let data = [];
-    switch (resource) {
-      case 'products':
-        data = products;
-        break;
-      case 'categories':
-        data = categories;
-        break;
-      default:
-        data = [];
-    }
-
-    params.ids.forEach(id => {
-      const index = data.findIndex(item => item.id === id);
-      if (index !== -1) {
-        data[index] = {
-          ...data[index],
-          ...params.data,
-          updatedAt: new Date().toISOString(),
-        };
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to update product');
       }
-    });
-
-    return Promise.resolve({
-      data: params.ids,
-    });
+      const data = await res.json();
+      return { data };
+    }
+    throw new Error('Update not supported for this resource');
   },
 
-  delete: (resource, params) => {
-    console.log('delete', resource, params);
-    
-    let data = [];
-    switch (resource) {
-      case 'products':
-        data = products;
-        break;
-      case 'categories':
-        data = categories;
-        break;
-      default:
-        data = [];
+  updateMany: async (resource, params) => {
+    if (resource === 'products') {
+      const results = await Promise.all(
+        params.ids.map((id) =>
+          fetch(apiUrl(`/api/products?id=${id}`), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params.data),
+          })
+        )
+      );
+      if (results.some((r) => !r.ok)) throw new Error('Failed to update some products');
+      return { data: params.ids };
     }
-
-    const index = data.findIndex(item => item.id === params.id);
-    if (index === -1) {
-      return Promise.reject(new Error('Record not found'));
-    }
-
-    data.splice(index, 1);
-
-    return Promise.resolve({
-      data: { id: params.id },
-    });
+    return { data: params.ids };
   },
 
-  deleteMany: (resource, params) => {
-    console.log('deleteMany', resource, params);
-    
-    let data = [];
-    switch (resource) {
-      case 'products':
-        data = products;
-        break;
-      case 'categories':
-        data = categories;
-        break;
-      default:
-        data = [];
-    }
-
-    params.ids.forEach(id => {
-      const index = data.findIndex(item => item.id === id);
-      if (index !== -1) {
-        data.splice(index, 1);
+  delete: async (resource, params) => {
+    if (resource === 'products') {
+      const res = await fetch(apiUrl(`/api/products?id=${params.id}`), { method: 'DELETE' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to delete product');
       }
-    });
+      return { data: { id: params.id } };
+    }
+    throw new Error('Delete not supported for this resource');
+  },
 
-    return Promise.resolve({
-      data: params.ids,
-    });
+  deleteMany: async (resource, params) => {
+    if (resource === 'products') {
+      await Promise.all(
+        params.ids.map((id) => fetch(apiUrl(`/api/products?id=${id}`), { method: 'DELETE' }))
+      );
+      return { data: params.ids };
+    }
+    return { data: params.ids };
   },
 };
