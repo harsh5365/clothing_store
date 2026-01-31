@@ -1,6 +1,10 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "../context/ThemeContext";
+import { CartProvider } from "../context/CartContext";
+import { WishlistProvider } from "../context/WishlistContext";
+import Providers from "./providers";
+import Navbar from "../components/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "StyleStore - Premium Clothing & Accessories",
+  title: "FashionFox - Premium Clothing & Accessories",
   description: "Discover your perfect style with our curated collection of premium clothing and accessories. From casual wear to formal attire.",
 };
 
@@ -28,9 +32,16 @@ export default function RootLayout({ children }) {
         ></script>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <Providers>
+          <ThemeProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <Navbar />
+                {children}
+              </WishlistProvider>
+            </CartProvider>
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

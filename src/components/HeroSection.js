@@ -1,6 +1,19 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import SearchBar from './SearchBar';
+
 const HeroSection = () => {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      router.push(`/products?q=${encodeURIComponent(query)}`);
+    }
+  };
   return (
     <section id="home" className="hero-section">
       <div className="container">
@@ -13,6 +26,18 @@ const HeroSection = () => {
               Explore our curated collection of premium clothing and accessories. 
               From casual wear to formal attire, find pieces that reflect your unique personality.
             </p>
+            
+            {/* Search Bar */}
+            <div className="row justify-content-center mb-4">
+              <div className="col-lg-8">
+                <SearchBar
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  placeholder="Search for products..."
+                />
+              </div>
+            </div>
+            
             <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center">
               <a 
                 href="#products" 
