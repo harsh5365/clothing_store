@@ -120,6 +120,7 @@ const Navbar = () => {
                 </button>
                 <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                   <li><Link className="dropdown-item" href="/profile">Profile</Link></li>
+                  <li><Link className="dropdown-item" href="/orders">Orders</Link></li>
                   {session.user.role === 'ADMIN' && (
                     <>
                       <li><hr className="dropdown-divider" /></li>

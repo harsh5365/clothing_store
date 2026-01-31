@@ -69,6 +69,25 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (id) {
+      const order = await prisma.order.findFirst({
+        where: {
+          id,
+          userId: session.user.id
+        },
+        include: {
+          items: true
+        }
+      });
+      if (!order) {
+        return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      }
+      return NextResponse.json(order);
+    }
+
     const orders = await prisma.order.findMany({
       where: {
         userId: session.user.id

@@ -76,7 +76,7 @@ export default function OrdersPage() {
                   <div className="row align-items-center">
                     <div className="col-md-3">
                       <h6 className="mb-1">Order #{order.orderNumber}</h6>
-                      <small className="text-muted">{formatDate(order.orderDate)}</small>
+                      <small className="text-muted">{formatDate(order.createdAt)}</small>
                     </div>
                     <div className="col-md-3">
                       <small className="text-muted d-block">Items</small>
@@ -87,7 +87,7 @@ export default function OrdersPage() {
                       <span className="fw-bold">${order.total?.toFixed(2) || '0.00'}</span>
                     </div>
                     <div className="col-md-2">
-                      <span className={`badge ${getStatusBadge(order.status)}`}>
+                      <span className={`badge ${getStatusBadge((order.status || '').toLowerCase())}`}>
                         {order.status}
                       </span>
                     </div>
