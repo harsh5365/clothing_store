@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import prisma from '../../../../backend/lib/prisma';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 export async function GET() {
   try {
@@ -23,9 +23,9 @@ export async function GET() {
 
     return NextResponse.json({ products, orders, reviews, users });
   } catch (error) {
-    console.error('Admin stats error:', error);
+    console.error('Admin stats fetch error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch stats' },
+      { error: 'Failed to load stats' },
       { status: 500 }
     );
   }

@@ -16,6 +16,8 @@ const emptyProduct = { name: '', description: '', price: '', image: '', category
 function ProductForm({ product, onSave, onCancel, saving }) {
   const isEdit = product && product.id != null;
   const [form, setForm] = useState(isEdit ? { ...product, price: String(product.price ?? ''), stock: String(product.stock ?? 0) } : { ...emptyProduct, price: '', stock: '0' });
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageError, setImageError] = useState(null);
 
   useEffect(() => {
     if (product && product.id != null) {
@@ -24,6 +26,38 @@ function ProductForm({ product, onSave, onCancel, saving }) {
       setForm({ ...emptyProduct, price: '', stock: '0' });
     }
   }, [product]);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageError(null);
+    if (!file.type.startsWith('image/')) {
+      setImageError('Please choose an image (JPEG, PNG, GIF, WebP).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setImageError('Image must be under 5MB.');
+      return;
+    }
+    setImageUploading(true);
+    const fd = new FormData();
+    fd.append('file', file);
+    fetch('/api/admin/upload', { method: 'POST', body: fd })
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.url) return data;
+        return Promise.reject(new Error(data.error || res.statusText || 'Upload failed'));
+      })
+      .then((data) => {
+        setForm((f) => ({ ...f, image: data.url }));
+        setImageError(null);
+      })
+      .catch((err) => setImageError(err.message || 'Upload failed'))
+      .finally(() => {
+        setImageUploading(false);
+        e.target.value = '';
+      });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -37,6 +71,8 @@ function ProductForm({ product, onSave, onCancel, saving }) {
     };
     onSave(payload);
   };
+
+  const imageDisplayUrl = form.image?.startsWith('/') ? form.image : form.image;
 
   return (
     <form onSubmit={handleSubmit} className="card card-body mb-4 border">
@@ -63,8 +99,20 @@ function ProductForm({ product, onSave, onCancel, saving }) {
           <input type="number" min="0" className="form-control" value={form.stock} onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))} />
         </div>
         <div className="col-md-4">
-          <label className="form-label small">Image URL</label>
-          <input type="url" className="form-control" value={form.image} onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))} placeholder="https://..." />
+          <label className="form-label small">Image (URL or upload)</label>
+          <input type="url" className="form-control mb-1" value={form.image} onChange={(e) => { setForm((f) => ({ ...f, image: e.target.value })); setImageError(null); }} placeholder="https://... or upload below" />
+          <div className="d-flex align-items-center gap-2 flex-wrap">
+            <label className="btn btn-sm btn-outline-primary mb-0">
+              {imageUploading ? 'Uploading…' : 'Upload image'}
+              <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" className="d-none" onChange={handleFileChange} disabled={imageUploading} />
+            </label>
+            {form.image && (
+              <span className="small text-muted">
+                Current: {imageDisplayUrl?.length > 40 ? `${imageDisplayUrl.slice(0, 40)}…` : imageDisplayUrl}
+              </span>
+            )}
+          </div>
+          {imageError && <div className="small text-danger mt-1">{imageError}</div>}
         </div>
         <div className="col-12 d-flex gap-2 mt-2">
           <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : (isEdit ? 'Update' : 'Create')}</button>
