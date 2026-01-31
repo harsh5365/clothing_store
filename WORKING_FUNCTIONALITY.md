@@ -8,9 +8,9 @@ This document describes **currently implemented, working functionality** for the
 
 **FashionFox** is an e-commerce clothing store (Next.js) that provides:
 
-- **Storefront**: Browse and view products, search, filter, product detail with reviews
-- **Authentication**: NextAuth with role-based access (Customer / Admin)
-- **Admin**: Dashboard for products and categories (React Admin)
+- **Storefront**: Browse and view products, search, filter, product detail with reviews (all product data from database via API)
+- **Authentication**: NextAuth with role-based access (Customer / Admin); session includes `user.id` and `user.role`
+- **Admin**: Dashboard for products and categories (React Admin); all data from API only, no static JSON
 - **Customer flows**: Cart, wishlist, checkout, order history, profile, contact
 - **UI**: Responsive layout, Bootstrap, theme toggle (light/dark), glassmorphism
 
@@ -30,7 +30,7 @@ This document describes **currently implemented, working functionality** for the
 | Auth | NextAuth.js, bcrypt, role-based (CUSTOMER/ADMIN) |
 | UI | Bootstrap 5, CSS Modules, Geist fonts |
 | State | React Context (Theme, Cart, Wishlist), TanStack React Query where used |
-| Admin | React Admin with custom data provider |
+| Admin | React Admin with API-only data provider (fetch `/api/products`, `/api/categories`) |
 
 **Commands:** `npm run dev` | `npm run build` | `npx prisma migrate dev` | `npm run create-admin`
 
@@ -89,7 +89,7 @@ This document describes **currently implemented, working functionality** for the
 | Save order on checkout | ✅ | POST `/api/orders` creates Order + OrderItems in DB |
 | “My Orders” entry point | ✅ | Profile / user menu link to `/orders` |
 
-**Key files:** `src/app/orders/page.js`, `src/app/orders/[id]/page.js`, `src/app/api/orders/route.js` (GET, POST), `src/lib/orderUtils.js`
+**Key files:** `src/app/orders/page.js`, `src/app/orders/[id]/page.js`, `src/app/api/orders/route.js` (GET, POST), `src/lib/orderUtils.js`. Session uses `getServerSession(authOptions)` so `session.user.id` is available.
 
 ---
 
@@ -105,7 +105,7 @@ This document describes **currently implemented, working functionality** for the
 | Filter/sort reviews | ✅ | ReviewList filter by rating, sort options |
 | Empty state | ✅ | Message when no reviews |
 
-**Key files:** `src/components/StarRating.js`, `src/components/ReviewForm.js`, `src/components/ReviewList.js`, `src/app/product/[id]/page.js`, `src/app/api/reviews/route.js`, `src/lib/reviewUtils.js`, `src/components/ProductCard.js`
+**Key files:** `src/components/StarRating.js`, `src/components/ReviewForm.js`, `src/components/ReviewList.js`, `src/app/product/[id]/page.js`, `src/app/api/reviews/route.js`, `src/lib/reviewUtils.js`, `src/components/ProductCard.js`. Reviews API uses `getServerSession(authOptions)` for `session.user.id`.
 
 ---
 
@@ -164,12 +164,12 @@ This document describes **currently implemented, working functionality** for the
 | Capability | Status | Notes |
 |------------|--------|--------|
 | Admin dashboard | ✅ | `/admin`, `/admin/dashboard` |
-| Product list/create/edit | ✅ | React Admin; ProductList, ProductCreate, ProductEdit |
-| Category list/create/edit | ✅ | CategoryList, CategoryCreate, CategoryEdit |
-| Data provider | ✅ | Custom provider for products/categories |
+| Product list/create/edit | ✅ | React Admin; ProductList, ProductCreate, ProductEdit; Prisma schema (name, description, price, image, category, stock) |
+| Category list (read-only) | ✅ | CategoryList; categories from GET `/api/categories` (derived from product.category) |
+| Data provider | ✅ | API-only: fetch `/api/products` and `/api/categories`; no static JSON/files |
 | Admin layout & protection | ✅ | AdminLayout, AdminProtection/AdminProvider |
 
-**Key files:** `src/app/admin/page.js`, `src/app/admin/dashboard/page.js`, `src/data/admin/dataProvider.js`, `src/components/admin/*`, `src/app/api/products/route.js`
+**Key files:** `src/app/admin/page.js`, `src/app/admin/dashboard/page.js`, `src/data/admin/dataProvider.js`, `src/components/admin/ProductList.js`, `src/components/admin/ProductCreate.js`, `src/components/admin/ProductEdit.js`, `src/components/admin/CategoryList.js`, `src/app/api/products/route.js`, `src/app/api/categories/route.js`
 
 ---
 
@@ -177,15 +177,15 @@ This document describes **currently implemented, working functionality** for the
 
 | Capability | Status | Notes |
 |------------|--------|--------|
-| Homepage | ✅ | Hero, featured products, search entry |
-| Products listing | ✅ | `/products` — grid, search, filters |
-| Product detail | ✅ | `/product/[id]` — details, reviews, add to cart/wishlist |
+| Homepage | ✅ | Hero, featured products (from API), search entry |
+| Products listing | ✅ | `/products` — fetches GET `/api/products`; grid, search, filters |
+| Product detail | ✅ | `/product/[id]` — fetches GET `/api/products?id=`; details, reviews, add to cart/wishlist |
 | Theme (light/dark) | ✅ | ThemeContext, persisted in localStorage |
 | Navbar | ✅ | Links, cart badge, wishlist badge, theme toggle, auth menu |
 | Contact | ✅ | Contact form; `/contact`; API route for submissions |
 | About | ✅ | `/about` |
 
-**Key files:** `src/app/page.js`, `src/app/products/page.js`, `src/app/product/[id]/page.js`, `src/context/ThemeContext.js`, `src/components/Navbar.js`, `src/components/HeroSection.js`, `src/components/ProductCard.js`, `src/components/ProductGrid.js`, `src/app/contact/page.js`, `src/app/api/contact/route.js`
+**Key files:** `src/app/page.js`, `src/app/products/page.js`, `src/app/product/[id]/page.js`, `src/context/ThemeContext.js`, `src/components/Navbar.js`, `src/components/HeroSection.js`, `src/components/ProductCard.js`, `src/components/ProductGrid.js`, `src/app/contact/page.js`, `src/app/api/contact/route.js`. Product data is loaded from the database only (no static JSON).
 
 ---
 
@@ -214,17 +214,24 @@ This document describes **currently implemented, working functionality** for the
 
 ## 5. Data & API summary
 
+All product and category data is served from the database via API; there are no static JSON or file-based data sources.
+
 | API / data | Purpose |
 |------------|--------|
-| `GET /api/products` | List products (admin/backend) |
+| `GET /api/products` | List all products (storefront & admin) |
+| `GET /api/products?id=` | Single product by id |
+| `POST /api/products` | Create product (admin) |
+| `PATCH /api/products?id=` | Update product (admin) |
+| `DELETE /api/products?id=` | Delete product (admin) |
+| `GET /api/categories` | Unique category names from products (read-only; admin) |
 | `POST /api/orders` | Create order (auth required) |
 | `GET /api/orders` | Current user’s orders (auth required) |
 | `POST /api/reviews` | Create review (auth required) |
 | `GET /api/reviews?productId=` | Reviews for a product |
 | `POST /api/contact` | Contact form submission |
-| NextAuth (`/api/auth/*`) | Login, signup, session |
+| NextAuth (`/api/auth/*`) | Login, signup, session (session includes `user.id`, `user.role`) |
 
-**Database (Prisma):** User, Account, Session, Product, Order, OrderItem, Review, VerificationToken; enums Role (CUSTOMER, ADMIN), OrderStatus.
+**Database (Prisma):** User, Account, Session, Product (image `@db.VarChar(500)`), Order, OrderItem, Review, VerificationToken; enums Role (CUSTOMER, ADMIN), OrderStatus. No Category table; categories are derived from `Product.category`.
 
 ---
 

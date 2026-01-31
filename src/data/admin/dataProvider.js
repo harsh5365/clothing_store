@@ -51,6 +51,18 @@ export const dataProvider = {
       const paginated = data.slice(start, start + perPage);
       return { data: paginated, total };
     }
+    if (resource === 'orders') {
+      const res = await fetch(apiUrl('/api/admin/orders'));
+      if (!res.ok) throw new Error('Failed to fetch orders');
+      let data = await res.json();
+      data = applyFilter(data, params.filter);
+      data = applySort(data, params.sort);
+      const total = data.length;
+      const { page, perPage } = params.pagination;
+      const start = (page - 1) * perPage;
+      data = data.slice(start, start + perPage);
+      return { data, total };
+    }
     return { data: [], total: 0 };
   },
 
@@ -69,6 +81,12 @@ export const dataProvider = {
       if (!record) return { data: { id: params.id, name: params.id } };
       return { data: record };
     }
+    if (resource === 'orders') {
+      const res = await fetch(apiUrl(`/api/admin/orders?id=${params.id}`));
+      if (!res.ok) throw new Error('Order not found');
+      const data = await res.json();
+      return { data };
+    }
     throw new Error('Unknown resource');
   },
 
@@ -85,6 +103,13 @@ export const dataProvider = {
       if (!res.ok) throw new Error('Failed to fetch categories');
       const list = await res.json();
       const data = list.filter((c) => params.ids.includes(c.id));
+      return { data };
+    }
+    if (resource === 'orders') {
+      const res = await fetch(apiUrl('/api/admin/orders'));
+      if (!res.ok) throw new Error('Failed to fetch orders');
+      const list = await res.json();
+      const data = list.filter((o) => params.ids.includes(o.id));
       return { data };
     }
     return { data: [] };

@@ -27,8 +27,8 @@ export default function CheckoutPage() {
   
   const [shippingErrors, setShippingErrors] = useState({});
   
-  // Payment Information
-  const [paymentMethod, setPaymentMethod] = useState('credit_card');
+  // Payment: Razorpay
+  const [paymentMethod] = useState('razorpay');
 
   // Redirect if not authenticated
   if (status === 'unauthenticated') {
@@ -77,9 +77,23 @@ export default function CheckoutPage() {
     }
   };
 
-  const handlePlaceOrder = async () => {
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (typeof window !== 'undefined' && window.Razorpay) {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => resolve();
+      document.body.appendChild(script);
+    });
+  };
+
+  const handlePayWithRazorpay = async () => {
     setIsProcessing(true);
-    
     try {
       const orderData = {
         userId: session.user.id,
@@ -104,23 +118,81 @@ export default function CheckoutPage() {
         paymentMethod
       };
 
-      const response = await fetch('/api/orders', {
+      const orderRes = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
       });
-
-      if (response.ok) {
-        const order = await response.json();
-        clearCart();
-        router.push(`/orders/${order.id}?success=true`);
-      } else {
-        alert('Failed to place order. Please try again.');
+      if (!orderRes.ok) {
+        const err = await orderRes.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to create order');
       }
+      const order = await orderRes.json();
+
+      const razorpayRes = await fetch('/api/razorpay/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id })
+      });
+      if (!razorpayRes.ok) {
+        const err = await razorpayRes.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to init payment');
+      }
+      const { razorpayOrderId, amount, currency, keyId } = await razorpayRes.json();
+
+      await loadRazorpayScript();
+      if (typeof window.Razorpay === 'undefined') {
+        throw new Error('Payment gateway could not be loaded.');
+      }
+
+      const options = {
+        key: keyId,
+        amount,
+        currency,
+        order_id: razorpayOrderId,
+        name: 'FashionFox',
+        description: `Order #${order.orderNumber}`,
+        prefill: {
+          name: shippingInfo.name,
+          email: session?.user?.email || '',
+          contact: shippingInfo.phone || ''
+        },
+        handler: async (response) => {
+          try {
+            const verifyRes = await fetch('/api/orders/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: order.id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpaySignature: response.razorpay_signature
+              })
+            });
+            if (verifyRes.ok) {
+              clearCart();
+              router.push(`/orders/${order.id}?success=true`);
+            } else {
+              const err = await verifyRes.json().catch(() => ({}));
+              alert(err.error || 'Payment verification failed.');
+            }
+          } catch (e) {
+            console.error(e);
+            alert('Payment verification failed.');
+          } finally {
+            setIsProcessing(false);
+          }
+        },
+        modal: {
+          ondismiss: () => setIsProcessing(false)
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (error) {
-      console.error('Order error:', error);
-      alert('An error occurred. Please try again.');
-    } finally {
+      console.error('Checkout error:', error);
+      alert(error?.message || 'Something went wrong. Please try again.');
       setIsProcessing(false);
     }
   };
@@ -258,34 +330,7 @@ export default function CheckoutPage() {
                   <h5 className="mb-0">Payment Method</h5>
                 </div>
                 <div className="card-body">
-                  <div className="form-check mb-2">
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="paymentMethod"
-                      id="creditCard"
-                      value="credit_card"
-                      checked={paymentMethod === 'credit_card'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                    />
-                    <label className="form-check-label" htmlFor="creditCard">
-                      Credit Card (Demo)
-                    </label>
-                  </div>
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="paymentMethod"
-                      id="paypal"
-                      value="paypal"
-                      checked={paymentMethod === 'paypal'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                    />
-                    <label className="form-check-label" htmlFor="paypal">
-                      PayPal (Demo)
-                    </label>
-                  </div>
+                  <p className="mb-0">Pay securely with Razorpay (cards, UPI, net banking, wallets).</p>
                 </div>
               </div>
 
@@ -317,10 +362,10 @@ export default function CheckoutPage() {
 
               <button
                 className="btn btn-primary btn-lg w-100"
-                onClick={handlePlaceOrder}
+                onClick={handlePayWithRazorpay}
                 disabled={isProcessing}
               >
-                {isProcessing ? 'Processing...' : `Place Order - $${total.toFixed(2)}`}
+                {isProcessing ? 'Opening payment...' : `Pay $${total.toFixed(2)} with Razorpay`}
               </button>
             </>
           )}
